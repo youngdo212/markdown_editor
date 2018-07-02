@@ -1,0 +1,37 @@
+html, body, .wrap, .markdown, .markup { height: 100% }
+
+.wrap {
+  background: #000;
+  overflow: hidden;
+}
+
+.markdown, .markup{
+  background: #fff;
+  width: 49.9%;
+  outline: none;
+  overflow: scroll;
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.markdown {
+  float: left;
+}
+
+.markup {
+  float: right;
+}
+
+.button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid;
+  border-radius: 50%;
+  position: fixed;
+  top: 2%;
+  right: 1%;
+}
+
+.button:hover {
+  background: #000;
+}
