@@ -338,7 +338,7 @@ getParentTag(token)
 
 7/4 핵심기능만 간추리기로 함
 
-* 헤더
+* 헤더(h1)
 * 리스트(ul)
 * bold
 * P
@@ -352,19 +352,20 @@ getParentTag(token)
   * 특수기호 태그로 변환
     * 헤더: 마침기호까지
     * 리스트: 시작기호만
+    * bold
     * 일반 텍스트: 태그 변환 x
 * parser
   * 문법구조 형성
   * 헤더
-    * if(parent): parent 태그 닫힘
+    * if(parent): parent 태그 닫힘, parent 초기화
     * if(!parent): 그대로
   * ul
-    * if(parent !== ul): parent 태그 닫힘
+    * if(parent !== ul): parent 태그 닫힘, parent 초기화
     * if(parent === ul): ul태그 삭제, list 닫힘
     * if(!parent): parent 설정(ul) > 그대로
   * 일반 텍스트(bold 포함)
     * if(parent): 그대로
     * if(!parent): parent 설정(p) > p태그 앞에 붙임
   * 공백
-    * if(parent): parent태그 닫힘
+    * if(parent): parent태그 닫힘, parent 초기화
     * if(!parent): 그대로
