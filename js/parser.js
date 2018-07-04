@@ -20,7 +20,7 @@ function parser(tokens){
         }
         else {
           token = `</${parentTagName}>` + token;
-          parentTagName = '';
+          parentTagName = 'ul';
         }
       }
       else {
@@ -40,7 +40,7 @@ function parser(tokens){
       }
     }
 
-    html += token + "/n";
+    html += token + "&#10";
   })
   
   return html;

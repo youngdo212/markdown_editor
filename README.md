@@ -369,3 +369,8 @@ getParentTag(token)
   * 공백
     * if(parent): parent태그 닫힘, parent 초기화
     * if(!parent): 그대로
+
+
+
+### view.js 제작
+

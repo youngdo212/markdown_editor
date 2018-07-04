@@ -18,7 +18,7 @@ function insertTag(token){
 }
 
 function insertHeaderTag(token){
-  return token.replace(/^\# /, '<h1>');
+  return token.replace(/^\# (.+)/, '<h1>$1</h1>');
 }
 
 function insertListTag(token){
