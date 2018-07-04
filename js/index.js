@@ -1,9 +1,9 @@
 /*
 class Controller{
-  constructor({button, markdown, markup, transpiler})
+  constructor({button, markdown, markup, converter})
   showContent(){
     const text = this.markdown.getText();
-    const html = this.transpiler.convert(text);
+    const html = this.converter.run(text);
     this.markup.setHtml(html);
   }
 }
@@ -16,25 +16,27 @@ class Markdown{
 class Markup{
   setHtml(html)
 }
-class Transpiler{
-  constructor({parser, interpreter})
-  convert(text){
-    const ast = this.parser.run(text);
-    const html = this.interpreter.run(ast);
+class Converter{
+  constructor({tokenizer, lexer, parser}){
+    this.parser = pipe(tokenizer, lexer, parser);
+  }
+  run(text){
+    const html = this.parser(text);
     return html
   }
 }
-class Parser{
-  run(text)
-}
-class Interpreter{
-  run(ast)
-}
+// modules
+index.js {Controller, Button, Converter}
+view.js {Markdown, Markup}
+tokenizer.js {tokenizer}
+lexer.js {lexer}
+parser.js {parser}
 */
 import {Markup, Markdown} from "./view.js";
-import {Parser} from "./parser.js";
-import {Interpreter} from "./interpreter.js";
+import {tokenizer} from "./tokenizer.js";
+import {lexer} from "./lexer.js";
+import {parser} from "./parser.js";
 
 class Controller{}
 class Button{}
-class Transpiler{}
+class Converter{}

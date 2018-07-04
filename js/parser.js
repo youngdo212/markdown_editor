@@ -1,3 +1,3 @@
-class Parser{}
+function parser(){}
 
-export {Parser};
+export {parser};
