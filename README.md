@@ -372,5 +372,77 @@ getParentTag(token)
 
 
 
-### view.js 제작
+#### 프로토타입의 구현
+
+핵심기능과 처음 구상한 데이터 구조를 바탕으로 프로토타입을 만들었다
+
+* 아직 데이터타입에 대한 의심을 하고 있다.
+
+* 파서가 복잡하다: 리팩토링하기 전이긴 하지만 아직 3가지 기능밖에 없을 뿐인데 경우의 수가 많다
+
+  ​
+
+
+
+#### 재설계
+
+```javascript
+class Markup{
+    render({location: {parent = $markup, child}, element})
+}
+class Markdown{
+    bindShowContent(handler) // handler(sendInfo())
+    sendInfo() // returns {location: {parent, child}, text}
+}
+class TextEditor{
+    constructor({editorElem})
+}
+class Controller{
+    constructor({markdown, markup, converter})
+    showContent({location, text}){
+        const element = this.converter(text);
+        this.markup.render({location: location, element: element})
+    }
+}
+function converter(text){}
+```
+
+* markdown과 markup은 {위치정보, 콘텐츠} 객체를 주고 받기로 함
+  * 위치 정보에 속한 모든 content를 전송해야 함
+* controller에서 {콘텐츠}를 converter를 이용해 변환해주기로
+
+
+
+#### 실시간 작성기능에만 초점을 맞춘 재설계
+
+```javascript
+class Markup{
+    addNewElem()
+    render(element)
+}
+class TextEditor{
+    this.bindAddNewLine = null;
+    this.bindShowContent = null;
+}
+class Controller{
+    constructor({textEditor, markup, converter}){
+        this.textEditor.bindAddNewLine = addNewLine.bind(this)
+        this.textEditor.bindShowContent = showContent.bind(this)
+    }
+    showContent(text){
+        const element = this.converter(text);
+        this.markup.render(element)
+    }
+    addNewLine(){
+        this.markup.addNewElem();
+    }
+}
+function converter(text){}
+```
+
+* markup
+  * 특별한 커맨드가 없으면 현재 엘리먼트를 계속 대체(Replace)
+  * 추가하라는 커맨드 들어오면
+    1. appendChild
+    2. lastChild
 

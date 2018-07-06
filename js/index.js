@@ -32,56 +32,33 @@ tokenizer.js {tokenizer}
 lexer.js {lexer}
 parser.js {parser}
 */
-import {Markup, Markdown} from "./view.js";
-import {tokenizer} from "./tokenizer.js";
-import {lexer} from "./lexer.js";
-import {parser} from "./parser.js";
+import {Markup} from "./view.js";
+import {TextEditor} from "./textEditor.js";
+import {converter} from "./converter.js";
 
 class Controller{
-  constructor({button, markdown, markup, converter}){
-    this.button = button;
-    this.markdown = markdown;
+  constructor({textEditor, markup, converter}){
+    this.textEditor = textEditor;
     this.markup = markup;
     this.converter = converter;
-    this.button.bindShowContent(this.showContent.bind(this));
+
+    this.textEditor.bindAddNewLine = this.addNewLine.bind(this)
+    this.textEditor.bindShowContent = this.showContent.bind(this)
   }
-  showContent(){
-    const text = this.markdown.getText();
-    const html = this.converter.run(text);
-    this.markup.setHtml(html);
+  addNewLine(){
+    this.markup.addNewElem();
+  }
+  showContent(text){
+    let elem = this.converter(text);
+    this.markup.render(elem);
   }
 }
 
-class Button{
-  constructor(){
-    this.$button = document.querySelector('.button');
-  }
-  bindShowContent(handler){
-    this.$button.addEventListener('click', () => {
-      handler();
-    })
-  }
-}
 
-class Converter{
-  constructor({tokenizer, lexer, parser}){
-    this.parser = pipe(tokenizer, lexer, parser);
-  }
-  run(text){
-    const html = this.parser(text);
-    return html;
-  }
-}
-
-const pipe = (...fns) => (value) => fns.reduce((value, fn) => fn(value), value);
-
-const button = new Button();
-const markdown = new Markdown();
+const textEditor = new TextEditor();
 const markup = new Markup();
-const converter = new Converter({tokenizer, lexer, parser});
 const controller = new Controller({
-  button: button,
-  markdown: markdown,
+  textEditor: textEditor,
   markup: markup,
   converter: converter
 })

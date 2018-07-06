@@ -2,8 +2,12 @@ class Markup{
   constructor(){
     this.$markup = document.querySelector(".markup");
   }
-  setHtml(html){
-    this.$markup.innerHTML = html;
+  addNewElem(){
+    let newElem = document.createElement("p");
+    this.$markup.appendChild(newElem);
+  }
+  render(element){
+    this.$markup.replaceChild(element, this.$markup.lastElementChild);
   }
 }
 class Markdown{
