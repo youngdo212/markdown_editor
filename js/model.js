@@ -5,6 +5,7 @@ class Model{
     this.converter = converter;
 
     this.bindReplaceElem = null;
+    this.bindInsertAdjacentElem = null;
   }
 
   set({line, textContent}){
@@ -14,20 +15,44 @@ class Model{
     
     const parentLine = targetLine.parentLine || targetLine;
 
-    if(targetLine.tagName !== 'P' && targetLine.parentLine !== null){  // targetLine이 이미 p태그가 아닐 경우 중복 실행방지
-      targetLine.parentLine = null
-      this.inputElemByLine(targetLine)
+    if(targetLine.tagName !== 'P' && targetLine.parentLine !== null) {  // targetLine이 이미 p태그가 아닐 경우 중복 실행방지
+      targetLine.parentLine = null;
+      
+      let nextLine = targetLine.nextLine;
+
+      if(nextLine){
+        this.modifyParentLine(nextLine, parentLine);
+        this.inputElemByLine(nextLine, parentLine);
+      }
+
+      this.inputElemByLine(targetLine, parentLine);
     }
 
     this.inputElemByLine(parentLine);
   }
 
-  inputElemByLine(line) {
-    const elemInfo = this.collectElemInfo(line);
-    const oldElem = line.elem;
+  modifyParentLine(newParentLine, oldParentLine){
+    newParentLine.parentLine = null;
+
+    let line = newParentLine; // 이상하다. while문을 위한 코드
+    
+    while(line = line.nextLine){
+
+      if(line.parentLine !== oldParentLine) return;
+
+      line.parentLine = newParentLine;
+    }
+  }
+
+  inputElemByLine(targetLine, previousLine = null) {
+    const elemInfo = this.collectElemInfo(targetLine);
     const newElem = this.makeElem(elemInfo);
-    this.bindReplaceElem(newElem, oldElem);
-    line.elem = newElem;
+
+    if(previousLine) this.bindInsertAdjacentElem(newElem, previousLine.elem);
+
+    else this.bindReplaceElem(newElem, targetLine.elem);
+
+    targetLine.elem = newElem;
   }
 
   collectElemInfo(line){

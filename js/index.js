@@ -59,11 +59,16 @@ class Controller{
 
     this.textEditor.bindShowContent = this.showContent.bind(this)
     this.model.bindReplaceElem = this.replaceElem.bind(this);
+    this.model.bindInsertAdjacentElem = this.insertAdjacentElem.bind(this);
     this.textEditor.bindAddNewLine = this.addNewLine.bind(this);
   }
 
   replaceElem(newElem, oldElem){
     this.markup.replaceElem(newElem, oldElem);
+  }
+
+  insertAdjacentElem(newElem, previousElem){
+    this.markup.insertAdjacentElem(newElem, previousElem);
   }
 
   showContent({line, textContent}){

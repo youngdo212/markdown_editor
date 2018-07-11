@@ -95,4 +95,7 @@ class Markup{
 
     else this.$markup.replaceChild(newElem, oldElem);
   }
+  insertAdjacentElem(newElem, previousElem){
+    previousElem.insertAdjacentElement('afterend', newElem);
+  }
 }
