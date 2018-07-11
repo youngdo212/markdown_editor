@@ -63,7 +63,10 @@ class Model{
     let aboveLine = this.get(line);
     let parentLine = aboveLine.parentLine || aboveLine;
 
-    let newLine = {parentLine: parentLine};
+    let newLine = {};
+
+    // 위의 라인이 헤더가 아닐 때
+    if(!/^H\d$/.test(aboveLine.tagName)) newLine.parentLine = parentLine;
 
     newLine.nextLine = aboveLine.nextLine;
     aboveLine.nextLine = newLine;
