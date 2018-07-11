@@ -11,10 +11,6 @@
 //   return {tagName: 'p', innerHtml: innerHtml}; // 띄어쓰기 부자연스러움
 // }
 
-// function makeInnerHtml(text){
-//   return text.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
-// }
-
 // function isHeader(text){
 //   return /^# /.test(text);
 // }
@@ -27,13 +23,25 @@
 // }
 
 function converter(text){
-  if(isHeader(text)) return {tagName: 'H1', innerHtml: text.slice(2)};
+  let {tagName, textContent} = makeTag(text);
 
-  return {tagName: 'P', innerHtml: text};
+  const innerHtml = makeInnerHtml(textContent);
+
+  return {tagName, innerHtml};
+}
+
+function makeTag(text){
+  if(isHeader(text)) return {tagName: 'H1', textContent: text.slice(2)};
+
+  return {tagName: 'P', textContent: text};
 }
 
 function isHeader(text){
   return /^# /.test(text);
+}
+
+function makeInnerHtml(text){
+  return text.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 }
 
 export {converter}
