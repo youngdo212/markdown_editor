@@ -1,61 +1,65 @@
 class TextEditor{
-  constructor(){
-    this.$markdown = document.querySelector(".markdown");
-    this.$currentLine = null;
-    this.bindAddNewLine = null;
+  constructor({textEditor}){
+    this.$textEditor = textEditor;
+    this.currentElem = null;
+    this.currentLine = 0;
     this.bindShowContent = null;
+    this.bindAddNewLine = null;
 
-    this.$markdown.addEventListener('click', ({target}) => {
-      target = this.activeLine(target);
-      this.setCurrentLine(target);
+    this.$textEditor.addEventListener('click', ({target}) => {
+      target = this.activateElem(target);
+      this.setCurrentElem(target);
     })
+
     document.addEventListener('keydown', ({key}) => {
-      if(!this.$currentLine) return;
+      if(!this.currentElem) return;
+      if(key === 'Shift') return;      
       if(key === 'Enter'){
-        this.appendLine();
-        this.activeLine(this.$currentLine);
-        this.bindAddNewLine();
+        this.bindAddNewLine(this.currentLine);
+        this.appendElem();
+        this.activateElem(this.currentElem);
         return;
       }
       this.type(key);
-      this.bindShowContent(this.$currentLine.textContent);
+      this.bindShowContent({line: this.currentLine, textContent: this.currentElem.textContent});
     })
   }
-  activeLine(target){
-    Array.from(this.$markdown.children).forEach(line => {
-      line.classList.remove('active');
+  activateElem(target){
+    Array.from(this.$textEditor.children).forEach(Elem => {
+      Elem.classList.remove('active');
     })
-    if(target.className === 'markdown') target = this.$markdown.lastElementChild; // re: 위치에 따른 activeLine변화
+    if(target.className === 'markdown') target = this.$textEditor.lastElementChild; // re: 위치에 따른 activeElem변화
     target.classList.add('active');
     
     return target;
   }
   type(key){
-    if(key === 'Shift') return;
     if(key === 'Backspace'){
-      if(!this.$currentLine.textContent){
-        this.deleteLine(this.$currentLine);
+      if(!this.currentElem.textContent){
+        this.deleteElem(this.currentElem);
         return
       }
-      this.$currentLine.textContent = this.$currentLine.textContent.slice(0, this.$currentLine.textContent.length-1);
+      this.currentElem.textContent = this.currentElem.textContent.slice(0, this.currentElem.textContent.length-1);
     }
-    else this.$currentLine.textContent += key;
+    else this.currentElem.textContent += key;
   }
-  appendLine(){
-    if(!this.$currentLine) return;
-    const line = document.createElement('div');
-    this.$currentLine.insertAdjacentElement("afterend", line);
-    this.setCurrentLine(line);
+  appendElem(){ // html template?
+    if(!this.currentElem) return;
+    const Elem = document.createElement('div');
+    Elem.setAttribute("data-line", this.currentLine + 1);
+    this.currentElem.insertAdjacentElement("afterend", Elem);
+    this.setCurrentElem(Elem);
   }
-  setCurrentLine(target){
-    this.$currentLine = target;
+  setCurrentElem(Elem){
+    this.currentElem = Elem;
+    this.currentLine = Number(Elem.dataset.line);
   }
-  deleteLine(line){
-    const nextCurrentLine = line.previousElementSibling;
-    if(!nextCurrentLine) return;
-    this.$markdown.removeChild(line);
-    this.setCurrentLine(nextCurrentLine);
-    this.activeLine(this.$currentLine);    
+  deleteElem(Elem){
+    const nextCurrentElem = Elem.previousElementSibling;
+    if(!nextCurrentElem) return;
+    this.$textEditor.removeChild(Elem);
+    this.setCurrentElem(nextCurrentElem);
+    this.activateElem(this.currentElem);    
   }
 }
 

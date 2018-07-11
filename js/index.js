@@ -35,30 +35,61 @@ parser.js {parser}
 import {Markup} from "./view.js";
 import {TextEditor} from "./textEditor.js";
 import {converter} from "./converter.js";
+import {Model} from "./model.js";
+
+// class Controller{
+//   constructor({textEditor, markup, converter}){
+//     this.textEditor = textEditor;
+//     this.markup = markup;
+//     this.converter = converter;
+
+//     this.textEditor.bindShowContent = this.showContent.bind(this)
+//   }
+//   showContent({line, text}){
+//     let node = this.converter(text);
+//     this.markup.input({line: line, node: node});
+//   }
+// }
 
 class Controller{
-  constructor({textEditor, markup, converter}){
+  constructor({textEditor, model, markup}){
     this.textEditor = textEditor;
+    this.model = model;
     this.markup = markup;
-    this.converter = converter;
 
-    this.textEditor.bindAddNewLine = this.addNewLine.bind(this)
     this.textEditor.bindShowContent = this.showContent.bind(this)
+    this.model.bindReplaceElem = this.replaceElem.bind(this);
+    this.textEditor.bindAddNewLine = this.addNewLine.bind(this);
   }
-  addNewLine(){
-    this.markup.addNewElem();
+
+  replaceElem(newElem, oldElem){
+    this.markup.replaceElem(newElem, oldElem);
   }
-  showContent(text){
-    let elem = this.converter(text);
-    this.markup.render(elem);
+
+  showContent({line, textContent}){
+    this.model.set({line, textContent});
+  }
+
+  addNewLine(line){
+    this.model.addNewLine(line);
   }
 }
 
+const textEditor = new TextEditor({
+  textEditor: document.querySelector(".markdown")
+});
 
-const textEditor = new TextEditor();
-const markup = new Markup();
+const markup = new Markup({
+  markup: document.querySelector('.markup')
+});
+
+const model = new Model({
+  converter: converter
+})
+
 const controller = new Controller({
   textEditor: textEditor,
   markup: markup,
-  converter: converter
+  model: model
 })
+
