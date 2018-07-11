@@ -14,7 +14,7 @@ class Model{
     
     const parentLine = targetLine.parentLine || targetLine;
 
-    if(targetLine.tagName !== 'P'){
+    if(targetLine.tagName !== 'P' && targetLine.parentLine !== null){  // targetLine이 이미 p태그가 아닐 경우 중복 실행방지
       targetLine.parentLine = null
       this.inputElemByLine(targetLine)
     }
@@ -63,10 +63,12 @@ class Model{
     let aboveLine = this.get(line);
     let parentLine = aboveLine.parentLine || aboveLine;
 
-    let newLine = {};
+    let newLine = {parentLine: parentLine};
 
-    // 위의 라인이 헤더가 아닐 때
-    if(!/^H\d$/.test(aboveLine.tagName)) newLine.parentLine = parentLine;
+    // 위의 라인이 헤더일 때
+    if(/^H\d$/.test(aboveLine.tagName)) newLine.parentLine = null; // refactor
+    // 위의 라인이 공백일 때
+    else if(!aboveLine.tagName) newLine.parentLine = null;
 
     newLine.nextLine = aboveLine.nextLine;
     aboveLine.nextLine = newLine;
