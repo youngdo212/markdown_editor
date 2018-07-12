@@ -96,6 +96,9 @@ class Markup{
     else this.$markup.replaceChild(newElem, oldElem);
   }
   insertAdjacentElem(newElem, previousElem){
+    // 공백 문자열일 때
+    if(!newElem) return;
+    
     previousElem.insertAdjacentElement('afterend', newElem);
   }
 }

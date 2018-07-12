@@ -12,23 +12,25 @@ class Model{
     let targetLine = this.get(line);
 
     ({tagName: targetLine.tagName, innerHtml: targetLine.innerHtml} = this.converter(textContent));
-    
-    const parentLine = targetLine.parentLine || targetLine;
 
-    if(targetLine.tagName !== 'P' && targetLine.parentLine !== null) {  // targetLine이 이미 p태그가 아닐 경우 중복 실행방지
-      targetLine.parentLine = null;
-      
+    if(targetLine.tagName === 'P') this.inputElemByLine(targetLine.parentLine || targetLine);
+
+    if(targetLine.tagName !== 'P') {
       let nextLine = targetLine.nextLine;
+      
+      let parentLine = targetLine.parentLine || targetLine;
 
-      if(nextLine){
+      if(nextLine && nextLine.parentLine === parentLine){
         this.modifyParentLine(nextLine, parentLine);
         this.inputElemByLine(nextLine, parentLine);
       }
 
-      this.inputElemByLine(targetLine, parentLine);
-    }
+      this.inputElemByLine(targetLine, targetLine.parentLine);
+      
+      targetLine.parentLine = null;
 
-    this.inputElemByLine(parentLine);
+      if(parentLine) this.inputElemByLine(parentLine);
+    }
   }
 
   modifyParentLine(newParentLine, oldParentLine){
@@ -79,6 +81,9 @@ class Model{
   }
 
   makeElem({tagName, innerHtml}){
+    // 공백 문자열일 때
+    if(!tagName) return null;
+
     let elem = document.createElement(tagName);
     elem.innerHTML = innerHtml;
     return elem
@@ -88,7 +93,7 @@ class Model{
     let aboveLine = this.get(line);
     let parentLine = aboveLine.parentLine || aboveLine;
 
-    let newLine = {parentLine: parentLine};
+    let newLine = {tagName: '', innerHtml: '', nextLine: null, parentLine: parentLine, elem: null};
 
     // 위의 라인이 헤더일 때
     if(/^H\d$/.test(aboveLine.tagName)) newLine.parentLine = null; // refactor
