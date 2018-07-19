@@ -8,10 +8,11 @@ class Model{
     this.bindInsertAdjacentElem = null;
   }
 
-  set({line, textContent}){
-    let targetLine = this.get(line);
+  set({line, key}){
+    let targetLine = this.getLine(line);
+    targetLine.innerHtml += key;
 
-    ({tagName: targetLine.tagName, innerHtml: targetLine.innerHtml} = this.converter(textContent));
+    ({tagName: targetLine.tagName, innerHtml: targetLine.innerHtml} = this.converter(targetLine.innerHtml));
 
     if(targetLine.tagName === 'P') this.inputElemByLine(targetLine.parentLine || targetLine);
 
@@ -70,7 +71,7 @@ class Model{
     return {tagName: tagName, innerHtml: innerHtml};
   }
 
-  get(line){
+  getLine(line){
     let targetLine = this.firstLine;
 
     while(--line){
@@ -78,6 +79,13 @@ class Model{
     }
 
     return targetLine;
+  }
+
+  getText(line){
+    let targetLine = this.getLine(line);
+    let text = targetLine.innerHtml;
+
+    return text;
   }
 
   makeElem({tagName, innerHtml}){
@@ -90,7 +98,7 @@ class Model{
   }
 
   addNewLine(line){
-    let aboveLine = this.get(line);
+    let aboveLine = this.getLine(line);
     let parentLine = aboveLine.parentLine || aboveLine;
 
     let newLine = {tagName: '', innerHtml: '', nextLine: null, parentLine: parentLine, elem: null};

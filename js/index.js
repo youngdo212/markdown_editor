@@ -57,10 +57,10 @@ class Controller{
     this.model = model;
     this.markup = markup;
 
-    this.textEditor.bindShowContent = this.showContent.bind(this)
     this.model.bindReplaceElem = this.replaceElem.bind(this);
     this.model.bindInsertAdjacentElem = this.insertAdjacentElem.bind(this);
-    this.textEditor.bindAddNewLine = this.addNewLine.bind(this);
+    this.textEditor.bindShowContent(this.showContent.bind(this));
+    this.textEditor.bindAddNewLine(this.addNewLine.bind(this));
   }
 
   replaceElem(newElem, oldElem){
@@ -71,12 +71,17 @@ class Controller{
     this.markup.insertAdjacentElem(newElem, previousElem);
   }
 
-  showContent({line, textContent}){
-    this.model.set({line, textContent});
+  showContent({line, key}){
+    this.model.set({line, key});
+
+    const textContent = this.model.getText(line);
+
+    this.textEditor.render(textContent);
   }
 
   addNewLine(line){
     this.model.addNewLine(line);
+    this.textEditor.appendElem();
   }
 }
 

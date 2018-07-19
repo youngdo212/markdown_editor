@@ -1,65 +1,91 @@
 class TextEditor{
   constructor({textEditor}){
     this.$textEditor = textEditor;
-    this.currentElem = null;
-    this.currentLine = 0;
-    this.bindShowContent = null;
-    this.bindAddNewLine = null;
-
+    this.$currentElem = null;
+    this.addAllEventListener();
+  }
+  
+  // markup 클릭했을 시 deactive 기능 추가해야 함
+  addAllEventListener(){
     this.$textEditor.addEventListener('click', ({target}) => {
-      target = this.activateElem(target);
-      this.setCurrentElem(target);
+      if(target === this.$textEditor) target = this.$textEditor.lastElementChild;
+      this._activateElem(target);
     })
+  }
 
+  bindShowContent(handler){
     document.addEventListener('keydown', ({key}) => {
-      if(!this.currentElem) return;
-      if(key === 'Shift') return;      
-      if(key === 'Enter'){
-        this.bindAddNewLine(this.currentLine);
-        this.appendElem();
-        this.activateElem(this.currentElem);
-        return;
-      }
-      this.type(key);
-      this.bindShowContent({line: this.currentLine, textContent: this.currentElem.textContent});
+      if(!this.$currentElem) return;
+      if(key === 'Shift') return;
+      if(key === 'Enter') return;
+
+      const currentLine = this._getLine(this.$currentElem);
+      
+      handler({line: currentLine, key: key});
+    });
+  }
+
+  bindAddNewLine(handler){
+    document.addEventListener('keydown', ({key}) => {
+      if(!this.$currentElem) return;
+      if(key !== 'Enter') return;
+
+      const currentLine = this._getLine(this.$currentElem);      
+
+      handler(currentLine);
     })
   }
-  activateElem(target){
-    Array.from(this.$textEditor.children).forEach(Elem => {
-      Elem.classList.remove('active');
-    })
-    if(target.className === 'markdown') target = this.$textEditor.lastElementChild; // re: 위치에 따른 activeElem변화
-    target.classList.add('active');
-    
-    return target;
+
+  render(text){
+    this.$currentElem.textContent = text;
   }
-  type(key){
-    if(key === 'Backspace'){
-      if(!this.currentElem.textContent){
-        this.deleteElem(this.currentElem);
-        return
-      }
-      this.currentElem.textContent = this.currentElem.textContent.slice(0, this.currentElem.textContent.length-1);
+  
+  _getLine(elem){
+    let line = 1;
+
+    while(elem = elem.previousElementSibling){
+      line++;
     }
-    else this.currentElem.textContent += key;
+
+    return line;
   }
-  appendElem(){ // html template?
-    if(!this.currentElem) return;
+
+  appendElem(){
     const Elem = document.createElement('div');
-    Elem.setAttribute("data-line", this.currentLine + 1);
-    this.currentElem.insertAdjacentElement("afterend", Elem);
-    this.setCurrentElem(Elem);
+
+    this.$currentElem.insertAdjacentElement("afterend", Elem);
+
+    this._activateElem(Elem)
   }
-  setCurrentElem(Elem){
-    this.currentElem = Elem;
-    this.currentLine = Number(Elem.dataset.line);
+
+  _activateElem(elem){
+    Array.from(this.$textEditor.children).forEach(elem => {
+      elem.classList.remove('active');
+    })
+    
+    elem.classList.add('active');
+
+    this.$currentElem = elem;
   }
+
+  // _pressKey(key){
+  //   if(key === 'Backspace'){
+  //     if(!this.$currentElem.textContent){
+  //       this.deleteElem(this.$currentElem);
+  //       return
+  //     }
+  //     this.$currentElem.textContent = this.$currentElem.textContent.slice(0, this.$currentElem.textContent.length-1);
+  //   }
+  //   else this.$currentElem.textContent += key;
+  //   this.$currentElem.textContent += key;
+  // }
+  
   deleteElem(Elem){
     const nextCurrentElem = Elem.previousElementSibling;
     if(!nextCurrentElem) return;
     this.$textEditor.removeChild(Elem);
-    this.setCurrentElem(nextCurrentElem);
-    this.activateElem(this.currentElem);    
+    this._setCurrentElem(nextCurrentElem);
+    this._activateElem(this.$currentElem);    
   }
 }
 
