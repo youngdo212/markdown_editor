@@ -1,91 +1,91 @@
 class TextEditor{
   constructor({textEditor}){
     this.$textEditor = textEditor;
-    this.$currentElem = null;
-    this.addAllEventListener();
+    this.$currentLine = null;
+    this._addAllEventListener();
   }
   
   // markup 클릭했을 시 deactive 기능 추가해야 함
-  addAllEventListener(){
+  _addAllEventListener(){
     this.$textEditor.addEventListener('click', ({target}) => {
       if(target === this.$textEditor) target = this.$textEditor.lastElementChild;
-      this._activateElem(target);
+      this._activateLine(target);
     })
   }
 
   bindShowContent(handler){
     document.addEventListener('keydown', ({key}) => {
-      if(!this.$currentElem) return;
+      if(!this.$currentLine) return;
       if(key === 'Shift') return;
       if(key === 'Enter') return;
 
-      const currentLine = this._getLine(this.$currentElem);
+      const currentLineNumber = this._getLineNumber(this.$currentLine);
       
-      handler({line: currentLine, key: key});
+      handler({lineNumber: currentLineNumber, key: key});
     });
   }
 
   bindAddNewLine(handler){
     document.addEventListener('keydown', ({key}) => {
-      if(!this.$currentElem) return;
+      if(!this.$currentLine) return;
       if(key !== 'Enter') return;
 
-      const currentLine = this._getLine(this.$currentElem);      
+      const currentLineNumber = this._getLineNumber(this.$currentLine);      
 
-      handler(currentLine);
+      handler(currentLineNumber);
     })
   }
 
   render(text){
-    this.$currentElem.textContent = text;
+    this.$currentLine.textContent = text;
   }
   
-  _getLine(elem){
-    let line = 1;
+  _getLineNumber(line){
+    let lineNumber = 1;
 
-    while(elem = elem.previousElementSibling){
-      line++;
+    while(line = line.previousElementSibling){
+      lineNumber++;
     }
 
-    return line;
+    return lineNumber;
   }
 
-  appendElem(){
-    const Elem = document.createElement('div');
+  appendLine(){
+    const line = document.createElement('div');
 
-    this.$currentElem.insertAdjacentElement("afterend", Elem);
+    this.$currentLine.insertAdjacentElement("afterend", line);
 
-    this._activateElem(Elem)
+    this._activateLine(line)
   }
 
-  _activateElem(elem){
-    Array.from(this.$textEditor.children).forEach(elem => {
-      elem.classList.remove('active');
+  _activateLine(line){
+    Array.from(this.$textEditor.children).forEach(line => {
+      line.classList.remove('active');
     })
     
-    elem.classList.add('active');
+    line.classList.add('active');
 
-    this.$currentElem = elem;
+    this.$currentLine = line;
   }
 
   // _pressKey(key){
   //   if(key === 'Backspace'){
-  //     if(!this.$currentElem.textContent){
-  //       this.deleteElem(this.$currentElem);
+  //     if(!this.$currentLine.textContent){
+  //       this.deleteElem(this.$currentLine);
   //       return
   //     }
-  //     this.$currentElem.textContent = this.$currentElem.textContent.slice(0, this.$currentElem.textContent.length-1);
+  //     this.$currentLine.textContent = this.$currentLine.textContent.slice(0, this.$currentLine.textContent.length-1);
   //   }
-  //   else this.$currentElem.textContent += key;
-  //   this.$currentElem.textContent += key;
+  //   else this.$currentLine.textContent += key;
+  //   this.$currentLine.textContent += key;
   // }
   
   deleteElem(Elem){
-    const nextCurrentElem = Elem.previousElementSibling;
-    if(!nextCurrentElem) return;
+    const nextCurrentLine = Elem.previousElementSibling;
+    if(!nextCurrentLine) return;
     this.$textEditor.removeChild(Elem);
-    this._setCurrentElem(nextCurrentElem);
-    this._activateElem(this.$currentElem);    
+    this._setCurrentLine(nextCurrentLine);
+    this._activateElem(this.$currentLine);    
   }
 }
 

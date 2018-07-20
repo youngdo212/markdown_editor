@@ -1,6 +1,6 @@
 class Model{
   constructor({converter}){
-    this.lines = [{tagName: '', innerHtml: '', nextLine: null, parentLine: null, elem: null}];
+    this.lines = [{tagName: '', textContent: '', innerHtml: '', nextLine: null, parentLine: null, elem: null}];
     this.firstLine = this.lines[0];
     this.converter = converter;
 
@@ -8,27 +8,41 @@ class Model{
     this.bindInsertAdjacentElem = null;
   }
 
-  set({line, key}){
-    let targetLine = this.getLine(line);
-    targetLine.innerHtml += key;
+  modifyLine({lineNumber, key}){
+    const targetLine = this._getLine(lineNumber);
 
-    ({tagName: targetLine.tagName, innerHtml: targetLine.innerHtml} = this.converter(targetLine.innerHtml));
+    this._appendChar(targetLine, key);
+    this._setTagInfo(targetLine);
+    this._syncLine(targetLine);
+  }
 
-    if(targetLine.tagName === 'P') this.inputElemByLine(targetLine.parentLine || targetLine);
+  _appendChar(line, key){
+    line.textContent += key;
+  }
 
-    if(targetLine.tagName !== 'P') {
-      let nextLine = targetLine.nextLine;
+  _setTagInfo(line){
+    const {tagName, innerHtml} = this.converter(line.textContent);
+
+    line.tagName = tagName;
+    line.innerHtml = innerHtml;
+  }
+
+  _syncLine(line){
+    if(line.tagName === 'P') this.inputElemByLine(line.parentLine || line);
+
+    else if(line.tagName !== 'P') {
+      let nextLine = line.nextLine;
       
-      let parentLine = targetLine.parentLine || targetLine;
+      let parentLine = line.parentLine || line;
 
       if(nextLine && nextLine.parentLine === parentLine){
         this.modifyParentLine(nextLine, parentLine);
         this.inputElemByLine(nextLine, parentLine);
       }
 
-      this.inputElemByLine(targetLine, targetLine.parentLine);
+      this.inputElemByLine(line, line.parentLine);
       
-      targetLine.parentLine = null;
+      line.parentLine = null;
 
       if(parentLine) this.inputElemByLine(parentLine);
     }
@@ -71,19 +85,19 @@ class Model{
     return {tagName: tagName, innerHtml: innerHtml};
   }
 
-  getLine(line){
+  _getLine(lineNumber){
     let targetLine = this.firstLine;
 
-    while(--line){
+    while(--lineNumber){
       targetLine = targetLine.nextLine;
     }
 
     return targetLine;
   }
 
-  getText(line){
-    let targetLine = this.getLine(line);
-    let text = targetLine.innerHtml;
+  getText(lineNumber){
+    let targetLine = this._getLine(lineNumber);
+    let text = targetLine.textContent;
 
     return text;
   }
@@ -98,10 +112,10 @@ class Model{
   }
 
   addNewLine(line){
-    let aboveLine = this.getLine(line);
+    let aboveLine = this._getLine(line);
     let parentLine = aboveLine.parentLine || aboveLine;
 
-    let newLine = {tagName: '', innerHtml: '', nextLine: null, parentLine: parentLine, elem: null};
+    let newLine = {tagName: '', textContent: '', innerHtml: '', nextLine: null, parentLine: parentLine, elem: null};
 
     // 위의 라인이 헤더일 때
     if(/^H\d$/.test(aboveLine.tagName)) newLine.parentLine = null; // refactor

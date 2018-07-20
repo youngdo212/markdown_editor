@@ -462,13 +462,8 @@ markup.input(Elem)
 
 - $접두어는 querySelector를 통해 얻어진 엘리먼트에만 쓰자
 - line ? elem? 
-  - elem으로 통일
-  - line은 몇번쨰 줄인지를 나타내는 Number형태로만 쓰자
+  - line으로 통일
+  - 몇번쨰 줄인지를 나타낼 때는 lineNumber형태로만 쓰자
 - active? current?
   - 활성화 된 엘리먼트, 라인은 current을 접두어로
   - 활성화 시키는 동작과 클래스는 active를 접두어로
-
-
-
-#### 재설계
-

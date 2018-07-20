@@ -71,17 +71,17 @@ class Controller{
     this.markup.insertAdjacentElem(newElem, previousElem);
   }
 
-  showContent({line, key}){
-    this.model.set({line, key});
+  showContent({lineNumber, key}){
+    this.model.modifyLine({lineNumber, key});
 
-    const textContent = this.model.getText(line);
+    const textContent = this.model.getText(lineNumber);
 
     this.textEditor.render(textContent);
   }
 
   addNewLine(line){
     this.model.addNewLine(line);
-    this.textEditor.appendElem();
+    this.textEditor.appendLine();
   }
 }
 
