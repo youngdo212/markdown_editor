@@ -72,8 +72,8 @@ class Controller{
     this.markup.replaceElem(newElem, oldElem);
   }
 
-  insertAdjacentElem(newElem, previousElem){
-    this.markup.insertAdjacentElem(newElem, previousElem);
+  insertAdjacentElem(newElem, nextElem){
+    this.markup.insertAdjacentElem(newElem, nextElem);
   }
 
   removeElem(elem){
