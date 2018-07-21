@@ -25,6 +25,8 @@ class Model{
 
       // h -> p
       else if(previousTagName === 'H1' && targetLine.tagName === 'P') this._H1ToP({lineNumber: lineNumber, targetLine: targetLine});
+
+      else this._inputElemByLine(targetLine);
     }
   }
 
@@ -87,6 +89,10 @@ class Model{
 
       this._inputElemByLine(targetLine);      
     }
+
+    else if(previousLine.tagName !== 'P' && nextLine.tagName !== 'P'){
+      this._inputElemByLine(targetLine);
+    }
   }
 
   _deleteLine({lineNumber, targetLine}){
@@ -135,19 +141,6 @@ class Model{
       if(parentLine) this._inputElemByLine(parentLine);
     }
   }
-
-  // _modifyParentLine(newParentLine, oldParentLine){
-  //   newParentLine.parentLine = null;
-
-  //   let line = newParentLine; // 이상하다. while문을 위한 코드
-    
-  //   while(line = line.nextLine){
-
-  //     if(line.parentLine !== oldParentLine) return;
-
-  //     line.parentLine = newParentLine;
-  //   }
-  // }
 
   _changeParentLine({targetLine, newParentLine, oldParentLine}){
     targetLine.parentLine = targetLine === newParentLine ? null : newParentLine;
