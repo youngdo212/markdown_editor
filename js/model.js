@@ -31,10 +31,13 @@ class Model{
   }
 
   _PToEmpty({lineNumber, targetLine}){
-    const previousLine = this._getLine(lineNumber-1); // lineNumber 가 0인경우
+    const previousLine = this._getLine(lineNumber-1);
     const nextLine = targetLine.nextLine;
 
-    if(previousLine.tagName === 'P' && nextLine.tagName === 'P'){
+    const previousLineTagName = previousLine ? previousLine.tagName : previousLine;
+    const nextLineTagName = nextLine ? nextLine.tagName : nextLine;
+
+    if(previousLineTagName === 'P' && nextLineTagName === 'P'){
       const parentLine = targetLine.parentLine;      
       this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
       this._inputElemByLine(nextLine, parentLine);
@@ -42,30 +45,33 @@ class Model{
       this._inputElemByLine(parentLine);      
     }
 
-    else if(previousLine.tagName !== 'P' && nextLine.tagName === 'P'){
+    else if(previousLineTagName !== 'P' && nextLineTagName === 'P'){
       this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: targetLine});
       this._inputElemByLine(nextLine, targetLine);
       this.bindRemoveElem(targetLine.elem);
       targetLine.elem = null;
     }
 
-    else if(previousLine.tagName === 'P' && nextLine.tagName !== 'P'){
+    else if(previousLineTagName === 'P' && nextLineTagName !== 'P'){
       const parentLine = targetLine.parentLine;
       targetLine.parentLine = null;
       this._inputElemByLine(parentLine);
     }
 
-    else if(previousLine.tagName !== 'P' && nextLine.tagName !== 'P'){
+    else if(previousLineTagName !== 'P' && nextLineTagName !== 'P'){
       this.bindRemoveElem(targetLine.elem);
       targetLine.elem = null;
     }
   }
 
   _H1ToP({lineNumber, targetLine}){
-    const previousLine = this._getLine(lineNumber-1); // lineNumber 가 0인경우
+    const previousLine = this._getLine(lineNumber-1);
     const nextLine = targetLine.nextLine;
 
-    if(previousLine.tagName === 'P' && nextLine.tagName === 'P'){
+    const previousLineTagName = previousLine ? previousLine.tagName : previousLine;
+    const nextLineTagName = nextLine ? nextLine.tagName : nextLine;
+
+    if(previousLineTagName === 'P' && nextLineTagName === 'P'){
       const parentLine = previousLine.parentLine || previousLine;
       targetLine.parentLine = parentLine;
       this._changeParentLine({targetLine: nextLine, newParentLine: parentLine, oldParentLine: nextLine});
@@ -78,7 +84,7 @@ class Model{
       this._inputElemByLine(parentLine);
     }
 
-    else if(previousLine.tagName === 'P' && nextLine.tagName !== 'P'){
+    else if(previousLineTagName === 'P' && nextLineTagName !== 'P'){
       const parentLine = previousLine.parentLine || previousLine;
       targetLine.parentLine = parentLine;
 
@@ -88,7 +94,7 @@ class Model{
       this._inputElemByLine(parentLine);      
     }
 
-    else if(previousLine.tagName !== 'P' && nextLine.tagName === 'P'){
+    else if(previousLineTagName !== 'P' && nextLineTagName === 'P'){
       this._changeParentLine({targetLine: nextLine, newParentLine: targetLine, oldParentLine: nextLine});
 
       this.bindRemoveElem(nextLine.elem);
@@ -97,7 +103,7 @@ class Model{
       this._inputElemByLine(targetLine);      
     }
 
-    else if(previousLine.tagName !== 'P' && nextLine.tagName !== 'P'){
+    else if(previousLineTagName !== 'P' && nextLineTagName !== 'P'){
       this._inputElemByLine(targetLine);
     }
   }
@@ -184,6 +190,8 @@ class Model{
   }
 
   _getLine(lineNumber){
+    if(lineNumber === 0) return null;
+
     let targetLine = this.firstLine;
 
     while(--lineNumber){
