@@ -21,7 +21,7 @@ class Model{
       this._setTagInfo(targetLine);
 
       // p -> ''
-      if(previousTagName === 'P' && targetLine.tagName === '') this._PToEmpty(targetLine);
+      if(previousTagName === 'P' && targetLine.tagName === '') this._PToEmpty({lineNumber: lineNumber, targetLine: targetLine});
 
       // h -> p
       else if(previousTagName === 'H1' && targetLine.tagName === 'P') this._H1ToP({lineNumber: lineNumber, targetLine: targetLine});
@@ -30,27 +30,34 @@ class Model{
     }
   }
 
-  _PToEmpty(line){
-    const nextLine = line.nextLine;
-    const parentLine = line.parentLine;
+  _PToEmpty({lineNumber, targetLine}){
+    const previousLine = this._getLine(lineNumber-1); // lineNumber 가 0인경우
+    const nextLine = targetLine.nextLine;
 
-    if(parentLine && nextLine.parentLine === parentLine){
+    if(previousLine.tagName === 'P' && nextLine.tagName === 'P'){
+      const parentLine = targetLine.parentLine;      
       this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
       this._inputElemByLine(nextLine, parentLine);
-      line.parentLine = null;
+      targetLine.parentLine = null;
       this._inputElemByLine(parentLine);      
     }
 
-    else if(!parentLine && nextLine.parentLine === line){
-      this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: line});
-      this._inputElemByLine(nextLine, line);
-      this.bindRemoveElem(line.elem);
-      line.elem = null;
+    else if(previousLine.tagName !== 'P' && nextLine.tagName === 'P'){
+      this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: targetLine});
+      this._inputElemByLine(nextLine, targetLine);
+      this.bindRemoveElem(targetLine.elem);
+      targetLine.elem = null;
     }
 
-    else if(parentLine && nextLine.parentLine !== parentLine){
-      line.parentLine = null;
+    else if(previousLine.tagName === 'P' && nextLine.tagName !== 'P'){
+      const parentLine = targetLine.parentLine;
+      targetLine.parentLine = null;
       this._inputElemByLine(parentLine);
+    }
+
+    else if(previousLine.tagName !== 'P' && nextLine.tagName !== 'P'){
+      this.bindRemoveElem(targetLine.elem);
+      targetLine.elem = null;
     }
   }
 
