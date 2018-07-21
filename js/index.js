@@ -62,7 +62,10 @@ class Controller{
     this.model.bindRemoveElem = this.removeElem.bind(this);
     this.textEditor.bindPressAnyKey(this.showContent.bind(this));
     this.textEditor.bindPressEnterKey(this.addNewLine.bind(this));
-    this.textEditor.bindPressDeleteKey(this.delete.bind(this));
+    this.textEditor.bindPressDeleteKey({
+      EmptyLineCaseHandler: this.deleteLine.bind(this),
+      NotEmptyLineCaseHandler: this.deleteChar.bind(this)
+    });
   }
 
   replaceElem(newElem, oldElem){
@@ -90,12 +93,18 @@ class Controller{
     this.textEditor.addLine();
   }
 
-  delete(lineNumber){ // naming
+  deleteChar(lineNumber){
     this.model.deleteChar(lineNumber);
 
     const textContent = this.model.getText(lineNumber);
 
     this.textEditor.render(textContent);
+  }
+
+  deleteLine(lineNumber){
+    this.model.deleteLine(lineNumber);
+
+    this.textEditor.deleteLine();
   }
 }
 

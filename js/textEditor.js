@@ -42,14 +42,15 @@ class TextEditor{
     })
   }
 
-  bindPressDeleteKey(handler){
+  bindPressDeleteKey({EmptyLineCaseHandler, NotEmptyLineCaseHandler}){
     document.addEventListener('keydown', ({key}) => {
       if(!this.$currentLine) return;
       if(key !== 'Backspace') return;
       
-      const currentLineNumber = this._getLineNumber(this.$currentLine);      
+      const currentLineNumber = this._getLineNumber(this.$currentLine);   
 
-      handler(currentLineNumber);
+      if(this.$currentLine.textContent === '') EmptyLineCaseHandler(currentLineNumber);
+      else NotEmptyLineCaseHandler(currentLineNumber);
     })
   }
 

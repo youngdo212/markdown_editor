@@ -11,22 +11,39 @@ class Model{
 
   deleteChar(lineNumber){
     const targetLine = this._getLine(lineNumber);
-    
-    if(targetLine.textContent === '') this._deleteLine({lineNumber: lineNumber, targetLine: targetLine});
+    const previousTagName = targetLine.tagName;
 
-    else {
-      const previousTagName = targetLine.tagName;
+    targetLine.textContent = targetLine.textContent.slice(0, targetLine.textContent.length-1);
+    this._setTagInfo(targetLine);
 
-      targetLine.textContent = targetLine.textContent.slice(0, targetLine.textContent.length-1);
-      this._setTagInfo(targetLine);
+    // p -> ''
+    if(previousTagName === 'P' && targetLine.tagName === '') this._PToEmpty({lineNumber: lineNumber, targetLine: targetLine});
 
-      // p -> ''
-      if(previousTagName === 'P' && targetLine.tagName === '') this._PToEmpty({lineNumber: lineNumber, targetLine: targetLine});
+    // h -> p
+    else if(previousTagName === 'H1' && targetLine.tagName === 'P') this._H1ToP({lineNumber: lineNumber, targetLine: targetLine});
 
-      // h -> p
-      else if(previousTagName === 'H1' && targetLine.tagName === 'P') this._H1ToP({lineNumber: lineNumber, targetLine: targetLine});
+    else this._inputElemByLine(targetLine);
+  }
 
-      else this._inputElemByLine(targetLine);
+  deleteLine(lineNumber){
+    const targetLine = this._getLine(lineNumber);
+    const previousLine = this._getLine(lineNumber-1);
+    const nextLine = targetLine.nextLine;
+
+    const previousLineTagName = previousLine ? previousLine.tagName : previousLine;
+    const nextLineTagName = nextLine ? nextLine.tagName : nextLine;
+
+    previousLine.nextLine = targetLine.nextLine;
+    this.lineSet.delete(targetLine);
+
+    if(previousLineTagName === 'P' && nextLineTagName === 'P'){
+      const parentLine = previousLine.parentLine || previousLine;
+      this._changeParentLine({targetLine: nextLine, newParentLine: parentLine, oldParentLine: nextLine});
+
+      this.bindRemoveElem(nextLine.elem);
+      nextLine.elem = null;
+
+      this._inputElemByLine(parentLine);
     }
   }
 
@@ -106,13 +123,6 @@ class Model{
     else if(previousLineTagName !== 'P' && nextLineTagName !== 'P'){
       this._inputElemByLine(targetLine);
     }
-  }
-
-  _deleteLine({lineNumber, targetLine}){
-    const previousLine = this._getLine(lineNumber-1); // lineNuber가 0인경우
-
-    previousLine.nextLine = targetLine.nextLine;
-    this.lineSet.delete(targetLine);
   }
 
   modifyLine({lineNumber, key}){
