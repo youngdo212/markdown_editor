@@ -109,9 +109,9 @@ class Model{
   }
 
   _deleteLine({lineNumber, targetLine}){
-    const aboveLine = this._getLine(lineNumber-1); // lineNuber가 0인경우
+    const previousLine = this._getLine(lineNumber-1); // lineNuber가 0인경우
 
-    aboveLine.nextLine = targetLine.nextLine;
+    previousLine.nextLine = targetLine.nextLine;
     this.lineSet.delete(targetLine);
   }
 
@@ -218,18 +218,18 @@ class Model{
   }
 
   addNewLine(lineNumber){
-    let aboveLine = this._getLine(lineNumber);
-    let parentLine = aboveLine.parentLine || aboveLine;
+    let previousLine = this._getLine(lineNumber);
+    let parentLine = previousLine.parentLine || previousLine;
 
     let newLine = {tagName: '', textContent: '', innerHtml: '', nextLine: null, parentLine: parentLine, elem: null};
 
     // 위의 라인이 헤더일 때
-    if(/^H\d$/.test(aboveLine.tagName)) newLine.parentLine = null; // refactor
+    if(/^H\d$/.test(previousLine.tagName)) newLine.parentLine = null; // refactor
     // 위의 라인이 공백일 때
-    else if(!aboveLine.tagName) newLine.parentLine = null;
+    else if(!previousLine.tagName) newLine.parentLine = null;
 
-    newLine.nextLine = aboveLine.nextLine;
-    aboveLine.nextLine = newLine;
+    newLine.nextLine = previousLine.nextLine;
+    previousLine.nextLine = newLine;
 
     this.lineSet.add(newLine);
   }
