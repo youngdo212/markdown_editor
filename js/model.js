@@ -338,7 +338,7 @@ class Model{
     let nextLine = newLine.nextLine;
     let parentLine = previousLine.parentLine || previousLine;
 
-    if(previousLine.tagName === 'P' && nextLine ? nextLine.tagName : nextLine === 'P'){
+    if(previousLine.tagName === 'P' && (nextLine ? nextLine.tagName : nextLine) === 'P'){
       const nextDifferParentLine = this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
       this._inputElemByLine(nextLine, nextDifferParentLine);
       this._inputElemByLine(parentLine);
