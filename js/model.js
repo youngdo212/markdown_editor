@@ -22,7 +22,7 @@ class Model{
     // h -> p
     else if(previousTagName === 'H1' && targetLine.tagName === 'P') this._H1ToP({lineNumber: lineNumber, targetLine: targetLine});
 
-    else this._inputElemByLine(targetLine);
+    else this._inputElemByLine(targetLine.parentLine || targetLine);
   }
 
   deleteLine(lineNumber){
