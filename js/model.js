@@ -141,7 +141,9 @@ class Model{
     // 공백 -> p태그
     if(previousTagName === '' && targetLine.tagName === 'P') this._modifyLineEmptyToP({lineNumber: lineNumber, targetLine: targetLine});
 
-    else this._syncLine(targetLine);
+    else if(previousTagName === 'P' && targetLine.tagName === 'H') this._cutLine({lineNumber: lineNumber, targetLine: targetLine});
+
+    else this._inputElemByLine(targetLine.parentLine || targetLine);
   }
 
   _appendChar(line, key){
@@ -207,26 +209,50 @@ class Model{
     }
   }
 
-  _syncLine(line){
-    if(line.tagName === 'P') {
-      this._inputElemByLine(line.parentLine || line);
+  _cutLine({lineNumber, targetLine}){
+
+    // *** this._PToEmpty와 매우 흡사
+    const previousLine = this._getLine(lineNumber-1);
+    const nextLine = targetLine.nextLine;
+
+    const previousLineTagName = previousLine ? previousLine.tagName : previousLine;
+    const nextLineTagName = nextLine ? nextLine.tagName : nextLine;
+
+    if(previousLineTagName === 'P' && nextLineTagName === 'P'){
+      const parentLine = targetLine.parentLine;      
+      this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
+      this._inputElemByLine(nextLine, parentLine);
+      targetLine.parentLine = null;
+      this._inputElemByLine(targetLine, parentLine); // _cutLine에만 추가된 요소
+      this._inputElemByLine(parentLine);      
     }
 
-    else if(line.tagName !== 'P') {
-      let nextLine = line.nextLine;
-      
-      let parentLine = line.parentLine || line;
+    else if(previousLineTagName !== 'P' && nextLineTagName === 'P'){
+      this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: targetLine});
+      this._inputElemByLine(nextLine, targetLine);
+      this._inputElemByLine(targetLine); // _cutLine에만 추가된 요소
 
-      if(nextLine && nextLine.parentLine === parentLine){
-        this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
-        this._inputElemByLine(nextLine, parentLine);
-      }
+      // this._PToEmpty
+      /*
+      this.bindRemoveElem(targetLine.elem);
+      targetLine.elem = null;
+      */
+    }
 
-      this._inputElemByLine(line, line.parentLine);
-      
-      line.parentLine = null;
+    else if(previousLineTagName === 'P' && nextLineTagName !== 'P'){
+      const parentLine = targetLine.parentLine;
+      targetLine.parentLine = null;
+      this._inputElemByLine(targetLine, parentLine); // _cutLine에만 추가된 요소      
+      this._inputElemByLine(parentLine);
+    }
 
-      if(parentLine) this._inputElemByLine(parentLine);
+    else if(previousLineTagName !== 'P' && nextLineTagName !== 'P'){
+      // this._PToEmpty
+      /*      
+      this.bindRemoveElem(targetLine.elem);
+      targetLine.elem = null;
+      */
+     this._inputElemByLine(targetLine);
     }
   }
 
