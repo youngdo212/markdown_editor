@@ -13,7 +13,7 @@ class Model{
     const targetLine = this._getLine(lineNumber);
     const previousTagName = targetLine.tagName;
 
-    targetLine.textContent = targetLine.textContent.slice(0, targetLine.textContent.length-1);
+    targetLine.textContent = targetLine.textContent.slice(0, -1);
     this._setTagInfo(targetLine);
 
     // p -> ''
@@ -30,10 +30,16 @@ class Model{
     const previousLine = this._getLine(lineNumber-1);
     const nextLine = targetLine.nextLine;
 
+    // 지울 라인이 없을 때
+    if(!previousLine && !nextLine) return;
+
     const previousLineTagName = previousLine ? previousLine.tagName : previousLine;
     const nextLineTagName = nextLine ? nextLine.tagName : nextLine;
 
-    previousLine.nextLine = targetLine.nextLine;
+    // refactor
+    if(!previousLine) this.firstLine = targetLine.nextLine;
+    else previousLine.nextLine = targetLine.nextLine;
+
     this.lineSet.delete(targetLine);
 
     if(previousLineTagName === 'P' && nextLineTagName === 'P'){
