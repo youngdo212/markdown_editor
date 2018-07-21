@@ -33,14 +33,14 @@ class Model{
     const parentLine = line.parentLine;
 
     if(parentLine && nextLine.parentLine === parentLine){
-      this._modifyParentLine(nextLine, parentLine);
+      this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
       this._inputElemByLine(nextLine, parentLine);
       line.parentLine = null;
       this._inputElemByLine(parentLine);      
     }
 
     else if(!parentLine && nextLine.parentLine === line){
-      this._modifyParentLine(nextLine, line);
+      this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: line});
       this._inputElemByLine(nextLine, line);
       this.bindRemoveElem(line.elem);
       line.elem = null;
@@ -53,7 +53,40 @@ class Model{
   }
 
   _H1ToP({lineNumber, targetLine}){
-    
+    const previousLine = this._getLine(lineNumber-1); // lineNumber 가 0인경우
+    const nextLine = targetLine.nextLine;
+
+    if(previousLine.tagName === 'P' && nextLine.tagName === 'P'){
+      const parentLine = previousLine.parentLine || previousLine;
+      targetLine.parentLine = parentLine;
+      this._changeParentLine({targetLine: nextLine, newParentLine: parentLine, oldParentLine: nextLine});
+
+      this.bindRemoveElem(targetLine.elem);
+      targetLine.elem = null;
+      this.bindRemoveElem(nextLine.elem);
+      nextLine.elem = null;
+
+      this._inputElemByLine(parentLine);
+    }
+
+    else if(previousLine.tagName === 'P' && nextLine.tagName !== 'P'){
+      const parentLine = previousLine.parentLine || previousLine;
+      targetLine.parentLine = parentLine;
+
+      this.bindRemoveElem(targetLine.elem);
+      targetLine.elem = null;
+
+      this._inputElemByLine(parentLine);      
+    }
+
+    else if(previousLine.tagName !== 'P' && nextLine.tagName === 'P'){
+      this._changeParentLine({targetLine: nextLine, newParentLine: targetLine, oldParentLine: nextLine});
+
+      this.bindRemoveElem(nextLine.elem);
+      nextLine.elem = null;
+
+      this._inputElemByLine(targetLine);      
+    }
   }
 
   _deleteLine({lineNumber, targetLine}){
@@ -91,7 +124,7 @@ class Model{
       let parentLine = line.parentLine || line;
 
       if(nextLine && nextLine.parentLine === parentLine){
-        this._modifyParentLine(nextLine, parentLine);
+        this._changeParentLine({targetLine: nextLine, newParentLine: nextLine, oldParentLine: parentLine});
         this._inputElemByLine(nextLine, parentLine);
       }
 
@@ -103,16 +136,26 @@ class Model{
     }
   }
 
-  _modifyParentLine(newParentLine, oldParentLine){
-    newParentLine.parentLine = null;
+  // _modifyParentLine(newParentLine, oldParentLine){
+  //   newParentLine.parentLine = null;
 
-    let line = newParentLine; // 이상하다. while문을 위한 코드
+  //   let line = newParentLine; // 이상하다. while문을 위한 코드
     
-    while(line = line.nextLine){
+  //   while(line = line.nextLine){
 
-      if(line.parentLine !== oldParentLine) return;
+  //     if(line.parentLine !== oldParentLine) return;
 
-      line.parentLine = newParentLine;
+  //     line.parentLine = newParentLine;
+  //   }
+  // }
+
+  _changeParentLine({targetLine, newParentLine, oldParentLine}){
+    targetLine.parentLine = targetLine === newParentLine ? null : newParentLine;
+    
+    while(targetLine = targetLine.nextLine) {
+      if(targetLine.parentLine !== oldParentLine) return;
+
+      targetLine.parentLine = newParentLine;
     }
   }
 
