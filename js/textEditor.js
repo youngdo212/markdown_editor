@@ -5,19 +5,25 @@ class TextEditor{
     this._addAllEventListener();
   }
   
-  // markup 클릭했을 시 deactive 기능 추가해야 함
   _addAllEventListener(){
     this.$textEditor.addEventListener('click', ({target}) => {
       if(target === this.$textEditor) target = this.$textEditor.lastElementChild;
+
       this._activateLine(target);
+    })
+
+    document.addEventListener('click', ({target}) => {
+      if(this.$textEditor.contains(target)) return;
+      this._deactivateLines();
     })
   }
 
-  bindShowContent(handler){
+  bindPressAnyKey(handler){
     document.addEventListener('keydown', ({key}) => {
       if(!this.$currentLine) return;
       if(key === 'Shift') return;
       if(key === 'Enter') return;
+      if(key === 'Backspace') return;
 
       const currentLineNumber = this._getLineNumber(this.$currentLine);
       
@@ -25,11 +31,22 @@ class TextEditor{
     });
   }
 
-  bindAddNewLine(handler){
+  bindPressEnterKey(handler){
     document.addEventListener('keydown', ({key}) => {
       if(!this.$currentLine) return;
       if(key !== 'Enter') return;
 
+      const currentLineNumber = this._getLineNumber(this.$currentLine);
+
+      handler(currentLineNumber);
+    })
+  }
+
+  bindPressDeleteKey(handler){
+    document.addEventListener('keydown', ({key}) => {
+      if(!this.$currentLine) return;
+      if(key !== 'Backspace') return;
+      
       const currentLineNumber = this._getLineNumber(this.$currentLine);      
 
       handler(currentLineNumber);
@@ -50,7 +67,7 @@ class TextEditor{
     return lineNumber;
   }
 
-  appendLine(){
+  addLine(){
     const line = document.createElement('div');
 
     this.$currentLine.insertAdjacentElement("afterend", line);
@@ -59,33 +76,28 @@ class TextEditor{
   }
 
   _activateLine(line){
-    Array.from(this.$textEditor.children).forEach(line => {
-      line.classList.remove('active');
-    })
+    this._deactivateLines();
     
     line.classList.add('active');
 
     this.$currentLine = line;
   }
 
-  // _pressKey(key){
-  //   if(key === 'Backspace'){
-  //     if(!this.$currentLine.textContent){
-  //       this.deleteElem(this.$currentLine);
-  //       return
-  //     }
-  //     this.$currentLine.textContent = this.$currentLine.textContent.slice(0, this.$currentLine.textContent.length-1);
-  //   }
-  //   else this.$currentLine.textContent += key;
-  //   this.$currentLine.textContent += key;
-  // }
-  
-  deleteElem(Elem){
-    const nextCurrentLine = Elem.previousElementSibling;
-    if(!nextCurrentLine) return;
-    this.$textEditor.removeChild(Elem);
-    this._setCurrentLine(nextCurrentLine);
-    this._activateElem(this.$currentLine);    
+  _deactivateLines(){
+    Array.from(this.$textEditor.children).forEach(line => {
+      line.classList.remove('active');
+    })
+
+    this.$currentLine = null;
+  }
+
+  deleteLine(){
+    if(this.$textEditor.children.length === 1) return;
+
+    const nextCurrentLine = this.$currentLine.previousElementSibling || this.$currentLine.nextElementSibling;
+    this.$textEditor.removeChild(this.$currentLine);
+
+    this._activateLine(nextCurrentLine);
   }
 }
 

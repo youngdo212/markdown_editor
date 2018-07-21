@@ -1,11 +1,66 @@
 class Model{
   constructor({converter}){
-    this.lines = [{tagName: '', textContent: '', innerHtml: '', nextLine: null, parentLine: null, elem: null}];
-    this.firstLine = this.lines[0];
+    this.firstLine = {tagName: '', textContent: '', innerHtml: '', nextLine: null, parentLine: null, elem: null}
+    this.lineSet = new Set([this.firstLine]);
     this.converter = converter;
 
     this.bindReplaceElem = null;
     this.bindInsertAdjacentElem = null;
+    this.bindRemoveElem = null;
+  }
+
+  deleteChar(lineNumber){
+    const targetLine = this._getLine(lineNumber);
+    
+    if(targetLine.textContent === '') this._deleteLine({lineNumber: lineNumber, targetLine: targetLine});
+
+    else {
+      const previousTagName = targetLine.tagName;
+
+      targetLine.textContent = targetLine.textContent.slice(0, targetLine.textContent.length-1);
+      this._setTagInfo(targetLine);
+
+      // p -> ''
+      if(previousTagName === 'P' && targetLine.tagName === '') this._PToEmpty(targetLine);
+
+      // h -> p
+      else if(previousTagName === 'H1' && targetLine.tagName === 'P') this._H1ToP({lineNumber: lineNumber, targetLine: targetLine});
+    }
+  }
+
+  _PToEmpty(line){
+    const nextLine = line.nextLine;
+    const parentLine = line.parentLine;
+
+    if(parentLine && nextLine.parentLine === parentLine){
+      this._modifyParentLine(nextLine, parentLine);
+      this._inputElemByLine(nextLine, parentLine);
+      line.parentLine = null;
+      this._inputElemByLine(parentLine);      
+    }
+
+    else if(!parentLine && nextLine.parentLine === line){
+      this._modifyParentLine(nextLine, line);
+      this._inputElemByLine(nextLine, line);
+      this.bindRemoveElem(line.elem);
+      line.elem = null;
+    }
+
+    else if(parentLine && nextLine.parentLine !== parentLine){
+      line.parentLine = null;
+      this._inputElemByLine(parentLine);
+    }
+  }
+
+  _H1ToP({lineNumber, targetLine}){
+    
+  }
+
+  _deleteLine({lineNumber, targetLine}){
+    const aboveLine = this._getLine(lineNumber-1); // lineNuber가 0인경우
+
+    aboveLine.nextLine = targetLine.nextLine;
+    this.lineSet.delete(targetLine);
   }
 
   modifyLine({lineNumber, key}){
@@ -28,7 +83,7 @@ class Model{
   }
 
   _syncLine(line){
-    if(line.tagName === 'P') this.inputElemByLine(line.parentLine || line);
+    if(line.tagName === 'P') this._inputElemByLine(line.parentLine || line);
 
     else if(line.tagName !== 'P') {
       let nextLine = line.nextLine;
@@ -36,19 +91,19 @@ class Model{
       let parentLine = line.parentLine || line;
 
       if(nextLine && nextLine.parentLine === parentLine){
-        this.modifyParentLine(nextLine, parentLine);
-        this.inputElemByLine(nextLine, parentLine);
+        this._modifyParentLine(nextLine, parentLine);
+        this._inputElemByLine(nextLine, parentLine);
       }
 
-      this.inputElemByLine(line, line.parentLine);
+      this._inputElemByLine(line, line.parentLine);
       
       line.parentLine = null;
 
-      if(parentLine) this.inputElemByLine(parentLine);
+      if(parentLine) this._inputElemByLine(parentLine);
     }
   }
 
-  modifyParentLine(newParentLine, oldParentLine){
+  _modifyParentLine(newParentLine, oldParentLine){
     newParentLine.parentLine = null;
 
     let line = newParentLine; // 이상하다. while문을 위한 코드
@@ -61,9 +116,9 @@ class Model{
     }
   }
 
-  inputElemByLine(targetLine, previousLine = null) {
-    const elemInfo = this.collectElemInfo(targetLine);
-    const newElem = this.makeElem(elemInfo);
+  _inputElemByLine(targetLine, previousLine = null) {
+    const elemInfo = this._collectElemInfo(targetLine);
+    const newElem = this._makeElem(elemInfo);
 
     if(previousLine) this.bindInsertAdjacentElem(newElem, previousLine.elem);
 
@@ -72,7 +127,7 @@ class Model{
     targetLine.elem = newElem;
   }
 
-  collectElemInfo(line){
+  _collectElemInfo(line){
     let parentLine = line;
     let tagName = parentLine.tagName;
     let innerHtml = parentLine.innerHtml;
@@ -102,7 +157,7 @@ class Model{
     return text;
   }
 
-  makeElem({tagName, innerHtml}){
+  _makeElem({tagName, innerHtml}){
     // 공백 문자열일 때
     if(!tagName) return null;
 
@@ -111,8 +166,8 @@ class Model{
     return elem
   }
 
-  addNewLine(line){
-    let aboveLine = this._getLine(line);
+  addNewLine(lineNumber){
+    let aboveLine = this._getLine(lineNumber);
     let parentLine = aboveLine.parentLine || aboveLine;
 
     let newLine = {tagName: '', textContent: '', innerHtml: '', nextLine: null, parentLine: parentLine, elem: null};
@@ -125,9 +180,8 @@ class Model{
     newLine.nextLine = aboveLine.nextLine;
     aboveLine.nextLine = newLine;
 
-    this.lines.push(newLine);
+    this.lineSet.add(newLine);
   }
-
 }
 
 export {Model};

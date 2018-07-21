@@ -33,11 +33,17 @@ function converter(text){
 function makeTag(text){
   if(isHeader(text)) return {tagName: 'H1', textContent: text.slice(2)};
 
+  else if(isEmpty(text)) return {tagName: '', textContent: text};
+
   return {tagName: 'P', textContent: text};
 }
 
 function isHeader(text){
   return /^# /.test(text);
+}
+
+function isEmpty(text){
+  return text === '';
 }
 
 function makeInnerHtml(text){

@@ -59,8 +59,10 @@ class Controller{
 
     this.model.bindReplaceElem = this.replaceElem.bind(this);
     this.model.bindInsertAdjacentElem = this.insertAdjacentElem.bind(this);
-    this.textEditor.bindShowContent(this.showContent.bind(this));
-    this.textEditor.bindAddNewLine(this.addNewLine.bind(this));
+    this.model.bindRemoveElem = this.removeElem.bind(this);
+    this.textEditor.bindPressAnyKey(this.showContent.bind(this));
+    this.textEditor.bindPressEnterKey(this.addNewLine.bind(this));
+    this.textEditor.bindPressDeleteKey(this.delete.bind(this));
   }
 
   replaceElem(newElem, oldElem){
@@ -71,6 +73,10 @@ class Controller{
     this.markup.insertAdjacentElem(newElem, previousElem);
   }
 
+  removeElem(elem){
+    this.markup.removeElem(elem);
+  }
+
   showContent({lineNumber, key}){
     this.model.modifyLine({lineNumber, key});
 
@@ -79,9 +85,17 @@ class Controller{
     this.textEditor.render(textContent);
   }
 
-  addNewLine(line){
-    this.model.addNewLine(line);
-    this.textEditor.appendLine();
+  addNewLine(lineNumber){
+    this.model.addNewLine(lineNumber);
+    this.textEditor.addLine();
+  }
+
+  delete(lineNumber){ // naming
+    this.model.deleteChar(lineNumber);
+
+    const textContent = this.model.getText(lineNumber);
+
+    this.textEditor.render(textContent);
   }
 }
 
