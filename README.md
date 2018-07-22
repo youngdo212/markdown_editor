@@ -96,10 +96,10 @@ webpack
 
 ```javascript
 class Controller{
-  constructor({button, markdown, markup, transpiler})
+  constructor({button, markdown, markup, converter})
   showContent(){
     const text = this.markdown.getText();
-    const html = this.transpiler.convert(text);
+    const html = this.converter.run(text);
     this.markup.setHtml(html);
   }
 }
@@ -112,19 +112,358 @@ class Markdown{
 class Markup{
   setHtml(html)
 }
-class Transpiler{
-  constructor({parser, interpreter})
-  convert(text){
-    const ast = this.parser.run(text);
-    const html = this.interpreter.run(ast);
+class Converter{
+  constructor({tokenizer, lexer, parser}){
+    this.parser = pipe(tokenizer, lexer, parser);
+  }
+  run(text){
+    const html = this.parser(text);
     return html
   }
 }
-class Parser{
-  run(text)
-}
-class Interpreter{
-  run(ast)
+/* modules
+index.js {Controller, Button, Converter}
+view.js {Markdown, Markup}
+tokenizer.js {tokenizer}
+lexer.js {lexer}
+parser.js {parser}
+*/
+```
+
+
+
+### 파서 제작
+
+데이터 구조
+
+```
+{
+    tagName:
+    attributes: [{name: href, value: "www.naver.com"}, {}, ...]
+    textContent:
+    child:[]
 }
 ```
 
+문법
+
+1. **double carriage return rule**
+
+2. **header**
+
+   ```
+   # h1      		// # h1\n
+
+   ###### h6 		// ###### h6\n
+
+   h1
+   =         		// h1\n=\n (보류)
+
+   h2
+   -         		// h2\n-\n (보류)
+   ```
+
+3. **list(ol, ul)**
+
+   ```
+   * ul      		 // * ul\n\n
+   - ul
+   + ul
+
+   * first
+   * second   		 // * first\n* second\n\n
+
+   0. ol     		 // 0. ol\n\n
+
+   1. first
+   2. second  		 // 1. first\n2. second\n\n
+   ```
+
+4. **bold/italic/tilde**(복잡해서 단순화)
+
+   ```
+   *italic*
+   **bold**
+   ***bold and italic***
+   ~~tilde~~
+   ```
+
+5. **blockquote**
+
+   ```
+   >blockquote				// >blockquote\n\n
+   > blockquote			// > blockquote\n\n
+
+   > blockquote
+   > blockquote			// 하나의 blockquote로 취급(보류)
+   ```
+
+6. **code block/syntax highlighting**(복잡해서 단순화)
+
+   ```
+   `highlight`
+
+   ​```
+   code
+   block
+   ​```							// ```\ncode\nblock\n```\n (보류)
+   ```
+
+7. **link**
+
+   ```
+   [link](uri)
+   ```
+
+   * `<a href="url">link</a>`
+
+8. **images**
+
+   ```
+   ![name](url)
+   ```
+
+   * `<img src="url" alt="name">`
+
+9. table(align)
+
+10. emoji(추후에 추가)
+
+11. horizontal line
+
+    * `***`
+    * `___`
+
+구상: text와 줄구조가 완벽히 똑같은 html을 반환하는 파서
+
+tokenizer: 토큰화
+
+* 줄단위로 토큰을 나눈다
+
+
+* \n기준으로 토큰화
+
+* trim
+
+* ```javascript
+  "* first\n* second\n\n# title"
+  ```
+
+* ```javascript
+  ["* first", "* second", "", "# title"]
+  ```
+
+
+lexer: 토큰의 정보(태그)담는다
+
+* 각 토큰의 특수기호를 태그로 대체한다->정규표현식 사용
+
+
+* cheatsheet: 위 문법 참고
+
+
+* 한 줄안에서 중첩태그가 발생하는 경우
+  * bold/italic/tilde/highlight
+  * link/image
+
+Parser: 각 토큰에 문법 정보를 담는다
+
+* p태그
+* 열림 닫힘태그: list, codeblock
+* ul과 ol을 확인한다
+
+설계
+
+```javascript
+/*
+param {string} text
+returns {Array}
+*/
+tokenizer(text){}
+
+/*
+param {Array} tokens
+returns {Array}
+*/
+lexer(tokens){
+    return tokens.map(token => {
+        return insertTag(token)
+    })
+}
+insertTag(token){
+    // is header, ol, ul, blockquote
+    token = insertHeaderTag(token);
+    token = insertListTag(token);
+    token = insertBlockquoteTag(token);
+
+    // has bold, italic, tilde, highlight, link, image
+    token = insertBoldTag(token);
+    token = insertItalicTag(token);
+    token = insertStrikethroughTag(token);
+    token = insertHighlightTag(token);
+    token = insertLinkTag(token);
+    token = insertImageTag(token);
+    
+    return token;
+}
+
+/*
+param {Array} tokens
+returns {string}
+*/
+parser(tokens){
+    let html = '';
+    let parentTag = '';
+    
+    tokens.forEach(token => {
+        const tokenInfo = getTokenInfo(token);
+        if(!parentTag) parentTag = tokenInfo.parent;
+        else{
+            if(parentTag !== tokenInfo.parent) token = `</${parentTag}>` + token
+        }
+        
+        html += token;
+    })
+    
+    return html;
+}
+/*
+returns {Object}
+*/
+getTokenInfo(token)
+
+getParentTag(token)
+
+```
+
+7/4 핵심기능만 간추리기로 함
+
+* 헤더(h1)
+* 리스트(ul)
+* bold
+* P
+
+설계
+
+* tokenizer
+  * 줄대로 토큰화
+  * trim
+* lexer
+  * 특수기호 태그로 변환
+    * 헤더: 마침기호까지
+    * 리스트: 시작기호만
+    * bold
+    * 일반 텍스트: 태그 변환 x
+* parser
+  * 문법구조 형성
+  * 헤더
+    * if(parent): parent 태그 닫힘, parent 초기화
+    * if(!parent): 그대로
+  * ul
+    * if(parent !== ul): parent 태그 닫힘, parent 초기화
+    * if(parent === ul): ul태그 삭제, list 닫힘
+    * if(!parent): parent 설정(ul) > 그대로
+  * 일반 텍스트(bold 포함)
+    * if(parent): 그대로
+    * if(!parent): parent 설정(p) > p태그 앞에 붙임
+  * 공백
+    * if(parent): parent태그 닫힘, parent 초기화
+    * if(!parent): 그대로
+
+
+
+#### 프로토타입의 구현
+
+핵심기능과 처음 구상한 데이터 구조를 바탕으로 프로토타입을 만들었다
+
+* 아직 데이터타입에 대한 의심을 하고 있다.
+
+* 파서가 복잡하다: 리팩토링하기 전이긴 하지만 아직 3가지 기능밖에 없을 뿐인데 경우의 수가 많다
+
+  ​
+
+
+
+#### 재설계
+
+```javascript
+class Markup{
+    render({location: {parent = $markup, child}, element})
+}
+class Markdown{
+    bindShowContent(handler) // handler(sendInfo())
+    sendInfo() // returns {location: {parent, child}, text}
+}
+class TextEditor{
+    constructor({editorElem})
+}
+class Controller{
+    constructor({markdown, markup, converter})
+    showContent({location, text}){
+        const element = this.converter(text);
+        this.markup.render({location: location, element: element})
+    }
+}
+function converter(text){}
+```
+
+* markdown과 markup은 {위치정보, 콘텐츠} 객체를 주고 받기로 함
+  * 위치 정보에 속한 모든 content를 전송해야 함
+* controller에서 {콘텐츠}를 converter를 이용해 변환해주기로
+
+
+
+#### 실시간 작성기능에만 초점을 맞춘 재설계
+
+```javascript
+class Markup{
+    addNewElem()
+    render(element)
+}
+class TextEditor{
+    this.bindAddNewLine = null;
+    this.bindShowContent = null;
+}
+class Controller{
+    constructor({textEditor, markup, converter}){
+        this.textEditor.bindAddNewLine = addNewLine.bind(this)
+        this.textEditor.bindShowContent = showContent.bind(this)
+    }
+    showContent(text){
+        const element = this.converter(text);
+        this.markup.render(element)
+    }
+    addNewLine(){
+        this.markup.addNewElem();
+    }
+}
+function converter(text){}
+```
+
+* markup
+  * 특별한 커맨드가 없으면 현재 엘리먼트를 계속 대체(Replace)
+  * 추가하라는 커맨드 들어오면
+    1. appendChild
+    2. lastChild
+
+최소 단계 에디터 구현 완료
+
+
+
+#### 기능 확장: p태그
+
+p태그일 경우 elem을 만들지 않고 textNode만 추가
+
+markup.input(Elem)
+
+
+
+#### 변수/함수명 규칙
+
+- $접두어는 querySelector를 통해 얻어진 엘리먼트에만 쓰자
+- line ? elem? 
+  - line으로 통일
+  - 몇번쨰 줄인지를 나타낼 때는 lineNumber형태로만 쓰자
+- active? current?
+  - 활성화 된 엘리먼트, 라인은 current을 접두어로
+  - 활성화 시키는 동작과 클래스는 active를 접두어로

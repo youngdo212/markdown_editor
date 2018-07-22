@@ -1,3 +1,0 @@
-class Interpreter{}
-
-export {Interpreter};

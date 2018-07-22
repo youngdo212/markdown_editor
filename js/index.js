@@ -1,9 +1,9 @@
 /*
 class Controller{
-  constructor({button, markdown, markup, transpiler})
+  constructor({button, markdown, markup, converter})
   showContent(){
     const text = this.markdown.getText();
-    const html = this.transpiler.convert(text);
+    const html = this.converter.run(text);
     this.markup.setHtml(html);
   }
 }
@@ -16,25 +16,113 @@ class Markdown{
 class Markup{
   setHtml(html)
 }
-class Transpiler{
-  constructor({parser, interpreter})
-  convert(text){
-    const ast = this.parser.run(text);
-    const html = this.interpreter.run(ast);
+class Converter{
+  constructor({tokenizer, lexer, parser}){
+    this.parser = pipe(tokenizer, lexer, parser);
+  }
+  run(text){
+    const html = this.parser(text);
     return html
   }
 }
-class Parser{
-  run(text)
-}
-class Interpreter{
-  run(ast)
-}
+// modules
+index.js {Controller, Button, Converter}
+view.js {Markdown, Markup}
+tokenizer.js {tokenizer}
+lexer.js {lexer}
+parser.js {parser}
 */
-import {Markup, Markdown} from "./view.js";
-import {Parser} from "./parser.js";
-import {Interpreter} from "./interpreter.js";
+import {Markup} from "./view.js";
+import {TextEditor} from "./textEditor.js";
+import {converter} from "./converter.js";
+import {Model} from "./model.js";
 
-class Controller{}
-class Button{}
-class Transpiler{}
+// class Controller{
+//   constructor({textEditor, markup, converter}){
+//     this.textEditor = textEditor;
+//     this.markup = markup;
+//     this.converter = converter;
+
+//     this.textEditor.bindShowContent = this.showContent.bind(this)
+//   }
+//   showContent({line, text}){
+//     let node = this.converter(text);
+//     this.markup.input({line: line, node: node});
+//   }
+// }
+
+class Controller{
+  constructor({textEditor, model, markup}){
+    this.textEditor = textEditor;
+    this.model = model;
+    this.markup = markup;
+
+    this.model.bindReplaceElem = this.replaceElem.bind(this);
+    this.model.bindInsertAdjacentElem = this.insertAdjacentElem.bind(this);
+    this.model.bindRemoveElem = this.removeElem.bind(this);
+    this.textEditor.bindPressAnyKey(this.showContent.bind(this));
+    this.textEditor.bindPressEnterKey(this.addNewLine.bind(this));
+    this.textEditor.bindPressDeleteKey({
+      EmptyLineCaseHandler: this.deleteLine.bind(this),
+      NotEmptyLineCaseHandler: this.deleteChar.bind(this)
+    });
+  }
+
+  replaceElem(newElem, oldElem){
+    this.markup.replaceElem(newElem, oldElem);
+  }
+
+  insertAdjacentElem(newElem, nextElem){
+    this.markup.insertAdjacentElem(newElem, nextElem);
+  }
+
+  removeElem(elem){
+    this.markup.removeElem(elem);
+  }
+
+  showContent({lineNumber, key}){
+    this.model.modifyLine({lineNumber, key});
+
+    const textContent = this.model.getText(lineNumber);
+
+    this.textEditor.render(textContent);
+  }
+
+  addNewLine(lineNumber){
+    this.model.addNewLine(lineNumber);
+    this.textEditor.addLine();
+  }
+
+  deleteChar(lineNumber){
+    this.model.deleteChar(lineNumber);
+
+    const textContent = this.model.getText(lineNumber);
+
+    this.textEditor.render(textContent);
+  }
+
+  deleteLine(lineNumber){
+    this.model.deleteLine(lineNumber);
+
+    this.textEditor.deleteLine();
+  }
+}
+
+const textEditor = new TextEditor({
+  textEditor: document.querySelector(".markdown")
+});
+
+const markup = new Markup({
+  markup: document.querySelector('.markup')
+});
+
+const model = new Model({
+  converter: converter
+})
+
+const controller = new Controller({
+  textEditor: textEditor,
+  markup: markup,
+  model: model
+})
+
